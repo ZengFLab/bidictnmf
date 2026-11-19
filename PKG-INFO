@@ -1,0 +1,163 @@
+Metadata-Version: 2.4
+Name: bidictnmf
+Version: 0.2.0
+Summary: Differentiable Bi-Dictionary Non-negative Matrix Factorization for cross-batch gene-program integration.
+Author: BiDictionaryNMF Contributors
+License: MIT
+Project-URL: Homepage, https://github.com/your-org/bidictnmf
+Project-URL: Repository, https://github.com/your-org/bidictnmf
+Project-URL: Issues, https://github.com/your-org/bidictnmf/issues
+Keywords: nmf,non-negative-matrix-factorization,single-cell,batch-integration,pytorch,gene-programs,bioinformatics
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.19
+Requires-Dist: scipy>=1.5
+Requires-Dist: scikit-learn>=0.24
+Requires-Dist: torch>=1.10
+Requires-Dist: tqdm>=4.0
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: matplotlib>=3.0; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: sphinx>=4.0; extra == "docs"
+Dynamic: license-file
+
+# BiDictionaryNMF
+
+> Differentiable **Bi-Dictionary Non-negative Matrix Factorization** for integrating
+> two batches / datasets while separating shared biology from batch-specific effects.
+
+`BiDictionaryNMF` factorizes two expression matrices **X** and **Y** as
+
+```
+X ≈ W_shared @ H_X_shared + W_X @ H_X_private
+Y ≈ W_shared @ H_Y_shared + W_Y @ H_Y_private
+```
+
+where **W_shared** captures biology common to both batches, while **W_X / W_Y**
+absorb batch-specific (technical) variation. The model is implemented in
+**PyTorch** and is fully differentiable.
+
+---
+
+## Features
+
+- 🔬 Shared + private dictionaries for clean cross-batch integration
+- ⚡ Fully differentiable (PyTorch `nn.Module`) — drop-in optimizable component
+- 💾 `save` / `load` for model persistence (training or deployment)
+- 📊 `tqdm` progress bar during fitting
+- 🧬 Gene-program utilities: `get_shared_compositions`, `get_shared_genes`
+- 🎯 Supports `n_private=0` (degenerate single-dictionary mode, equivalent to plain NMF)
+- 📦 Standard Python package, installable via `pip install .` or from PyPI
+
+---
+
+## Installation
+
+```bash
+pip install bidictnmf
+```
+
+From source (development mode):
+
+```bash
+git clone https://github.com/your-org/bidictnmf.git
+cd bidictnmf
+pip install -e .
+```
+
+Requirements: Python ≥ 3.8, NumPy, SciPy, scikit-learn, PyTorch, tqdm.
+
+---
+
+## Quick Start
+
+```python
+import numpy as np
+from bidictnmf import BiDictionaryNMF
+
+# X, Y: (n_cells, n_genes) expression matrices for two batches
+model = BiDictionaryNMF(
+    n_shared=20,
+    n_private=10,
+    lam_private=0.05,
+    lr=5e-4,
+    max_iter=300,
+    verbose=True,           # shows tqdm progress bar
+)
+
+model.fit(X, Y)
+
+# Shared compositions (biology common to X and Y)
+H_X_s, H_Y_s = model.get_shared_compositions()
+
+# Map new cells onto the learned dictionaries
+H_new = model.transform(Z, batch='X')
+
+# Inspect gene programs
+top_genes = model.get_shared_genes(gene_names=gene_names, top_k=10)
+```
+
+### Pure shared dictionary (`n_private=0`)
+
+Setting `n_private=0` reduces the model to a single shared dictionary
+(equivalent to plain NMF). The private dictionaries `W_X`, `W_Y` become
+empty `(n_genes, 0)` tensors, the private-term regularization is
+automatically zeroed, and `transform` returns `H` of shape
+`(n_shared, n_cells)`. This is useful when you only care about shared
+biology and want no batch-specific component:
+
+```python
+model = BiDictionaryNMF(n_shared=20, n_private=0)
+model.fit(X, Y)
+
+H_X_s, H_Y_s = model.get_shared_compositions()  # (n_shared, n_cells) each
+H_new = model.transform(Z, batch='X')           # shape (n_shared, n_cells)
+```
+
+### Save / Load
+
+```python
+model.save("my_model.pt")                # export
+model2 = BiDictionaryNMF.load("my_model.pt")  # import (returns a fitted model)
+```
+
+`load` accepts a `map_location` argument to control the device:
+
+```python
+model_cpu = BiDictionaryNMF.load("my_model.pt", map_location="cpu")
+```
+
+---
+
+## API
+
+The class mirrors the original script's interface. Key methods:
+
+| Method | Description |
+|--------|-------------|
+| `fit(X, Y)` | Fit the model to two `(n_cells, n_genes)` matrices |
+| `transform(Z, batch)` | Project new data onto the dictionaries (fixed W) |
+| `get_shared_compositions()` | Shared H for X and Y |
+| `get_shared_genes(top_k, gene_names)` | Top genes per shared gene program |
+| `save(path)` | Persist model, config and loss history |
+| `load(path, map_location)` | Restore a fitted model (classmethod) |
+| `n_private=0` | Degenerate mode: no private dictionary, equivalent to plain NMF |
+
+Properties `W_shared_np`, `W_X_np`, `W_Y_np`, `H_X_np`, `H_Y_np` return
+parameters as NumPy arrays.
+
+---
+
+## License
+
+MIT © BiDictionaryNMF Contributors.

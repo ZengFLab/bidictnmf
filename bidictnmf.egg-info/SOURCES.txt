@@ -1,0 +1,14 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+bidictnmf/__init__.py
+bidictnmf/model.py
+bidictnmf/py.typed
+bidictnmf.egg-info/PKG-INFO
+bidictnmf.egg-info/SOURCES.txt
+bidictnmf.egg-info/dependency_links.txt
+bidictnmf.egg-info/requires.txt
+bidictnmf.egg-info/top_level.txt
+tests/test_bidictnmf.py

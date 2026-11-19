@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bidictnmf"
+version = "0.2.1"
+description = "Differentiable Bi-Dictionary Non-negative Matrix Factorization for cross-batch gene-program integration."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "BiDictionaryNMF Contributors"}
+]
+keywords = [
+    "nmf", "non-negative-matrix-factorization", "single-cell",
+    "batch-integration", "pytorch", "gene-programs", "bioinformatics"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.19",
+    "scipy>=1.5",
+    "scikit-learn>=0.24",
+    "torch>=1.10",
+    "tqdm>=4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "matplotlib>=3.0",
+]
+docs = [
+    "sphinx>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ZengFLab/bidictnmf"
+Repository = "https://github.com/ZengFLab/bidictnmf"
+Issues = "https://github.com/ZengFLab/bidictnmf/issues"
+
+[tool.setuptools.packages.find]
+include = ["bidictnmf*"]
+exclude = ["tests*", "examples*"]
+
+[tool.setuptools.package-data]
+bidictnmf = ["py.typed"]
